@@ -94,9 +94,10 @@ if __name__ == '__main__':
 		
 	model.eval()
 	total = len(bags_dataset)
-
 	for bag_candidate_idx in range(total):
-		slide_id = bags_dataset[bag_candidate_idx].split(args.slide_ext)[0]
+		print('index: ' + str(bag_candidate_idx))
+		slide_id = str(bags_dataset[bag_candidate_idx])
+		#.split(args.slide_ext)[0]
 		bag_name = slide_id+'.h5'
 		h5_file_path = os.path.join(args.data_h5_dir, 'patches', bag_name)
 		slide_file_path = os.path.join(args.data_slide_dir, slide_id+args.slide_ext)
@@ -110,19 +111,24 @@ if __name__ == '__main__':
 		output_path = os.path.join(args.feat_dir, 'h5_files', bag_name)
 		time_start = time.time()
 		wsi = openslide.open_slide(slide_file_path)
-		output_file_path = compute_w_loader(h5_file_path, output_path, wsi, 
-		model = model, batch_size = args.batch_size, verbose = 1, print_every = 20, 
-		custom_downsample=args.custom_downsample, target_patch_size=args.target_patch_size)
-		time_elapsed = time.time() - time_start
-		print('\ncomputing features for {} took {} s'.format(output_file_path, time_elapsed))
-		file = h5py.File(output_file_path, "r")
+		try:
+			output_file_path = compute_w_loader(h5_file_path, output_path, wsi, 
+			model = model, batch_size = args.batch_size, verbose = 1, print_every = 20, 
+			custom_downsample=args.custom_downsample, target_patch_size=args.target_patch_size)
+			
+			time_elapsed = time.time() - time_start
+			print('\ncomputing features for {} took {} s'.format(output_file_path, time_elapsed))
+			file = h5py.File(output_file_path, "r")
 
-		features = file['features'][:]
-		print('features size: ', features.shape)
-		print('coordinates size: ', file['coords'].shape)
-		features = torch.from_numpy(features)
-		bag_base, _ = os.path.splitext(bag_name)
-		torch.save(features, os.path.join(args.feat_dir, 'pt_files', bag_base+'.pt'))
+			features = file['features'][:]
+			print('features size: ', features.shape)
+			print('coordinates size: ', file['coords'].shape)
+			features = torch.from_numpy(features)
+			bag_base, _ = os.path.splitext(bag_name)
+			torch.save(features, os.path.join(args.feat_dir, 'pt_files', bag_base+'.pt'))
+		except Exception as err:
+			print("Encountered the following error")
+			print(err)
 
 
 
