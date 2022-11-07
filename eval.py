@@ -42,7 +42,15 @@ parser.add_argument('--micro_average', action='store_true', default=False,
                     help='use micro_average instead of macro_avearge for multiclass AUC')
 parser.add_argument('--split', type=str, choices=['train', 'val', 'test', 'all'], default='test')
 parser.add_argument('--task', type=str, choices=['task_1_tumor_vs_normal',  'task_2_tumor_subtyping'])
+parser.add_argument('--image_dir', type=str, default='./',
+                    help='directory relative to current path that contains the data, used for filtering excel file (default: ./)')
 args = parser.parse_args()
+
+# Reading the data from input directory and prepping the filter such that only those data are taken in training/testing
+print('==========================================================')
+image_list = os.listdir(str(os.getcwd()) + '/' + args.image_dir)
+image_list = list(map(lambda a : float(a.split('.')[0]), image_list))
+print('Number of images in \''+ args.image_dir + '\': ' + str(len(image_list)))
 
 device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -73,21 +81,23 @@ print(settings)
 if args.task == 'task_1_tumor_vs_normal':
     args.n_classes=2
     dataset = Generic_MIL_Dataset(csv_path = 'dataset_csv/tumor_vs_normal_dummy_clean.csv',
-                            data_dir= os.path.join(args.data_root_dir, 'tumor_vs_normal_resnet_features'),
+                            data_dir= os.path.join(args.data_root_dir),
                             shuffle = False, 
                             print_info = True,
-                            label_dict = {'normal_tissue':0, 'tumor_tissue':1},
+                            label_dict = {4:0, 5:1},
                             patient_strat=False,
+                            filter_dict = {'slide_id':image_list},
                             ignore=[])
 
 elif args.task == 'task_2_tumor_subtyping':
-    args.n_classes=3
+    args.n_classes=2
     dataset = Generic_MIL_Dataset(csv_path = 'dataset_csv/tumor_subtyping_dummy_clean.csv',
-                            data_dir= os.path.join(args.data_root_dir, 'tumor_subtyping_resnet_features'),
+                            data_dir= os.path.join(args.data_root_dir),
                             shuffle = False, 
                             print_info = True,
-                            label_dict = {'subtype_1':0, 'subtype_2':1, 'subtype_3':2},
+                            label_dict = {4:0, 5:1},
                             patient_strat= False,
+                            filter_dict = {'slide_id':image_list},
                             ignore=[])
 
 # elif args.task == 'tcga_kidney_cv':

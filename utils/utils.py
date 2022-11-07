@@ -33,9 +33,15 @@ class SubsetSequentialSampler(Sampler):
 		return len(self.indices)
 
 def collate_MIL(batch):
-	img = torch.cat([item[0] for item in batch], dim = 0)
-	label = torch.LongTensor([item[1] for item in batch])
-	return [img, label]
+	try:
+		img = torch.cat([item[0] for item in batch], dim = 0)
+		label = torch.LongTensor([item[1] for item in batch])
+		return [img, label]
+	except Exception as e:
+		print('Encountered error while collating')
+		# print(img)
+		# print('\n')
+		print(e)
 
 def collate_features(batch):
 	img = torch.cat([item[0] for item in batch], dim = 0)
@@ -150,7 +156,7 @@ def make_weights_for_balanced_classes_split(dataset):
 	weight = [0] * int(N)                                           
 	for idx in range(len(dataset)):   
 		y = dataset.getlabel(idx)                        
-		weight[idx] = weight_per_class[y]                                  
+		weight[idx] = weight_per_class[int(y)]                               
 
 	return torch.DoubleTensor(weight)
 
