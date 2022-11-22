@@ -63,11 +63,13 @@ for folder in folders:
             if not os.path.exists(os.path.join(dest_path, folder, year)):
                 os.mkdir(os.path.join(dest_path, folder, year))
             for img in os.listdir(os.path.join(root_path, folder, year)):
-                print(img)
-                counter+=1
-                load_slideio(os.path.join(root_path, folder, year),img, os.path.join(dest_path, folder, year))
+                if not os.path.exists(os.path.join(dest_path, folder, year, img.split('.')[0] + '.jpeg')):
+                    print(img)
+                    counter+=1
+                    load_slideio(os.path.join(root_path, folder, year),img, os.path.join(dest_path, folder, year))
     else:
         for img in os.listdir(os.path.join(root_path, folder)):
-            print(img)
-            counter+=1
-            load_slideio(os.path.join(root_path, folder), img, os.path.join(dest_path, folder))
+            if not os.path.exists(os.path.join(dest_path, folder, img.split('.')[0] + '.jpeg')):
+                print(img)
+                counter+=1
+                load_slideio(os.path.join(root_path, folder), img, os.path.join(dest_path, folder))
