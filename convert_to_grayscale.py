@@ -18,8 +18,6 @@ from skimage.color import rgb2gray
 WSI_size = 4096
 
 def load_slideio(path, image_name, dest_path='./', WSI_size=(38000,43000)):
-    print('Path')
-    print(path)
     #loads *.svs images and returns a list of images
     if image_name[-4:] != '.svs':
         return
@@ -27,33 +25,17 @@ def load_slideio(path, image_name, dest_path='./', WSI_size=(38000,43000)):
     # path = os.path.join(root_path, img_name)
     # slide = slideio.open_slide(path, 'SVS')
     slide = openslide.open_slide( os.path.join(path, image_name))
-    print("Level count: " + str(slide.level_count))
-    print('level dimensions: ')
-    print(slide.level_dimensions)
     image = slide.read_region((0, 0), 0, WSI_size)
-    print('Read image shape: ')
-    print(image.size)
-    print('Read image mode: ')
-    print(image.mode)
     # scene = slide.get_scene(0)
     # image = scene.read_block(size=WSI_size)
     
     # rgb_image = image.convert('RGB')
-    # print('RGB converted image shape: ')
-    # print(rgb_image.size)
-    # print('RGB converted image mode: ')
-    # print(rgb_image.mode)
 
-    #gray = rgb2gray(rgb_image)
+    # gray = rgb2gray(rgb_image)
     
-    #gray_img = Image.fromarray(gray, mode="L")
+    # gray_img = Image.fromarray(gray, mode="L")
     
     gray_img = image.convert('L')
-    
-    print('Gray image shape: ')
-    print(gray_img.size)
-    print('Gray image mode: ')
-    print(gray_img.mode)
     
     gray_img.save(os.path.join(dest_path, image_name.split('.')[0]+'.jpeg'))
     # print('Saved image '+path)
@@ -64,10 +46,11 @@ def load_slideio(path, image_name, dest_path='./', WSI_size=(38000,43000)):
 root_path = sys.argv[1]
 
 print(os.listdir(root_path))
-dest_path = '/scratch/d/dsussman/fawasim/wsi_jpg_grey'+'_'+datetime.datetime.now().strftime('%Y_%h_%d__%H_%m')
+# dest_path = '/scratch/d/dsussman/fawasim/wsi_jpg_grey'+'_'+datetime.datetime.now().strftime('%Y_%h_%d__%H_%m')
+dest_path = '/scratch/d/dsussman/fawasim/wsi_jpg_grey_2022_Nov_20__23_11'
 
 if not os.path.exists(dest_path):
-     os.mkdir(dest_path)
+    os.mkdir(dest_path)
 
 folders = ['Cancer', 'Atypical_hyperplasia', 'Hyperplasia_without_Atypia']
 
@@ -81,13 +64,13 @@ for folder in folders:
             if not os.path.exists(os.path.join(dest_path, folder, year)):
                 os.mkdir(os.path.join(dest_path, folder, year))
             for img in os.listdir(os.path.join(root_path, folder, year)):
-                if img.split('.')[0] == '1000':
+                if not os.path.exists(os.path.join(dest_path, folder, year, img.split('.')[0] + '.jpeg')):
                     print(img)
                     counter+=1
                     load_slideio(os.path.join(root_path, folder, year),img, os.path.join(dest_path, folder, year))
     else:
         for img in os.listdir(os.path.join(root_path, folder)):
-            if img.split('.')[0] == '1000':
+            if not os.path.exists(os.path.join(dest_path, folder, img.split('.')[0] + '.jpeg')):
                 print(img)
                 counter+=1
                 load_slideio(os.path.join(root_path, folder), img, os.path.join(dest_path, folder))

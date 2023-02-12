@@ -123,6 +123,7 @@ if __name__ == '__main__':
 			features = file['features'][:]
 			print('features size: ', features.shape)
 			print('coordinates size: ', file['coords'].shape)
+			print('first 10 coords: ', file['coords'][:10])
 			features = torch.from_numpy(features)
 			bag_base, _ = os.path.splitext(bag_name)
 			torch.save(features, os.path.join(args.feat_dir, 'pt_files', bag_base+'.pt'))
