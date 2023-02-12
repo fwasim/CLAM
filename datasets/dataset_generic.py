@@ -20,6 +20,9 @@ def save_splits(split_datasets, column_keys, filename, boolean_style=False):
 		df = pd.concat(splits, ignore_index=True, axis=1)
 		df.columns = column_keys
 	else:
+		# print('------------------------------')
+		# print('Splits type: ' + str(type(splits)))
+		# print('Splits: ' + str(type(splits)))
 		df = pd.concat(splits, ignore_index = True, axis=0)
 		index = df.values.tolist()
 		one_hot = np.eye(len(split_datasets)).astype(bool)
@@ -41,6 +44,7 @@ class Generic_WSI_Classification_Dataset(Dataset):
 		patient_strat=False,
 		label_col = None,
 		patient_voting = 'max',
+		use_h5 = False,
 		):
 		"""
 		Args:
@@ -58,11 +62,15 @@ class Generic_WSI_Classification_Dataset(Dataset):
 		self.patient_strat = patient_strat
 		self.train_ids, self.val_ids, self.test_ids  = (None, None, None)
 		self.data_dir = None
+		self.use_h5 = use_h5
 		if not label_col:
 			label_col = 'label'
 		self.label_col = label_col
 
-		slide_data = pd.read_csv(csv_path, dtype={'case_id': 'Int64', 'slide_id': 'Int64', 'label': np.float64})
+		print('+-+-+-+-+-came to parent constructor+-+-+-+-+-+-')
+		print('use_h5: ' + str(self.use_h5))
+
+		slide_data = pd.read_csv(csv_path, dtype={'case_id': 'Int64', 'slide_id': np.float64, 'label': np.float64})
 		print('Shape of data frame holding data labels after reading from csv: ')
 		print(slide_data.shape)
 		slide_data = self.filter_df(slide_data, filter_dict)
@@ -133,7 +141,7 @@ class Generic_WSI_Classification_Dataset(Dataset):
 			#print('i: ', str(i))
 			key = data.loc[i, 'label']
 			#print('key: ', str(key))
-			if (key == 4 or key == 5):
+			if (key in label_dict):
 				data.at[i, 'label'] = label_dict[key]
 			else:
 				print('Dropping row ' + str(i) + ' from dataframe')
@@ -334,12 +342,15 @@ class Generic_WSI_Classification_Dataset(Dataset):
 
 class Generic_MIL_Dataset(Generic_WSI_Classification_Dataset):
 	def __init__(self,
-		data_dir, 
+		data_dir,
 		**kwargs):
 	
 		super(Generic_MIL_Dataset, self).__init__(**kwargs)
 		self.data_dir = data_dir
-		self.use_h5 = False
+		# self.use_h5 = False
+		# self.use_h5 = use_h5
+		print('+-+-+-+-+-came to first child constructor+-+-+-+-+-+-')
+		print('h5: ' + str(self.use_h5))
 
 	def load_from_h5(self, toggle):
 		self.use_h5 = toggle
@@ -353,8 +364,8 @@ class Generic_MIL_Dataset(Generic_WSI_Classification_Dataset):
 				data_dir = self.data_dir[source]
 			else:
 				data_dir = self.data_dir
-
 			if not self.use_h5:
+				print('====== not using h5 ============')
 				if self.data_dir:
 					#print('Came to if')
 					full_path = os.path.join(data_dir, 'pt_files', '{}.pt'.format(slide_id))
@@ -367,7 +378,8 @@ class Generic_MIL_Dataset(Generic_WSI_Classification_Dataset):
 					return slide_id, label
 
 			else:
-				full_path = os.path.join(data_dir,'h5_files','{}.h5'.format(slide_id))
+				print('-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=')
+				full_path = os.path.join(data_dir,'h5_files','{}.h5'.format(int(slide_id)))
 				with h5py.File(full_path,'r') as hdf5_file:
 					features = hdf5_file['features'][:]
 					coords = hdf5_file['coords'][:]
@@ -381,11 +393,15 @@ class Generic_MIL_Dataset(Generic_WSI_Classification_Dataset):
 
 class Generic_Split(Generic_MIL_Dataset):
 	def __init__(self, slide_data, data_dir=None, num_classes=2):
-		self.use_h5 = False
+		self.use_h5 = True
 		self.slide_data = slide_data
 		self.data_dir = data_dir
 		self.num_classes = num_classes
 		self.slide_cls_ids = [[] for i in range(self.num_classes)]
+
+		print('+-+-+-+-+-came to grandchild constructor+-+-+-+-+-+-')
+		print('use_h5: ' + str(self.use_h5))
+
 		for i in range(self.num_classes):
 			self.slide_cls_ids[i] = np.where(self.slide_data['label'] == i)[0]
 
