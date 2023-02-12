@@ -46,7 +46,7 @@ elif args.task == 'task_2_tumor_subtyping':
                             shuffle = False, 
                             seed = args.seed, 
                             print_info = True,
-                            label_dict = {4:0, 5:1},
+                            label_dict = {1:0, 2:1, 3:2, 4:3, 5:4, 6:5, 7:6},
                             filter_dict = {'slide_id':image_list},
                             patient_strat= True,
                             patient_voting='maj',
