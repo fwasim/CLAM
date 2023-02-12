@@ -40,12 +40,16 @@ def main(args):
     all_test_acc = []
     all_val_acc = []
     folds = np.arange(start, end)
+
     for i in folds:
+        print('####################')
         seed_torch(args.seed)
+        print('---------------------')
         train_dataset, val_dataset, test_dataset = dataset.return_splits(from_id=False, 
                 csv_path='{}/splits_{}.csv'.format(args.split_dir, i))
-        
+        print('++++++++++++++++++++++')
         datasets = (train_dataset, val_dataset, test_dataset)
+        ######################## Calling the train function ##########################
         results, test_auc, val_auc, test_acc, val_acc  = train(datasets, i, args)
         all_test_auc.append(test_auc)
         all_val_auc.append(val_auc)
@@ -108,7 +112,16 @@ parser.add_argument('--subtyping', action='store_true', default=False,
 parser.add_argument('--bag_weight', type=float, default=0.7,
                     help='clam: weight coefficient for bag-level loss (default: 0.7)')
 parser.add_argument('--B', type=int, default=8, help='numbr of positive/negative patches to sample for clam')
+parser.add_argument('--image_dir', type=str, default='./',
+                    help='directory relative to current path that contains the data, used for filtering excel file (default: ./)')
 args = parser.parse_args()
+
+# Reading the data from input directory and prepping the filter such that only those data are taken in training/testing
+print('==========================================================')
+image_list = os.listdir(str(os.getcwd()) + '/' + args.image_dir)
+image_list = list(map(lambda a : float(a.split('.')[0]), image_list))
+print('Number of images in \''+ args.image_dir + '\': ' + str(len(image_list)))
+
 device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def seed_torch(seed=7):
@@ -154,23 +167,26 @@ print('\nLoad Dataset')
 if args.task == 'task_1_tumor_vs_normal':
     args.n_classes=2
     dataset = Generic_MIL_Dataset(csv_path = 'dataset_csv/tumor_vs_normal_dummy_clean.csv',
-                            data_dir= os.path.join(args.data_root_dir, 'tumor_vs_normal_resnet_features'),
+                            data_dir= os.path.join(args.data_root_dir),
                             shuffle = False, 
                             seed = args.seed, 
                             print_info = True,
-                            label_dict = {'normal_tissue':0, 'tumor_tissue':1},
+                            label_dict = {4:0, 5:1},
+                            filter_dict = {'slide_id':image_list},
                             patient_strat=False,
                             ignore=[])
 
 elif args.task == 'task_2_tumor_subtyping':
-    args.n_classes=3
+    args.n_classes=2
     dataset = Generic_MIL_Dataset(csv_path = 'dataset_csv/tumor_subtyping_dummy_clean.csv',
-                            data_dir= os.path.join(args.data_root_dir, 'tumor_subtyping_resnet_features'),
+                            data_dir= os.path.join(args.data_root_dir),
                             shuffle = False, 
                             seed = args.seed, 
                             print_info = True,
-                            label_dict = {'subtype_1':0, 'subtype_2':1, 'subtype_3':2},
-                            patient_strat= False,
+                            label_dict = {4:0, 5:1},
+                            filter_dict = {'slide_id':image_list},
+                            patient_strat= True,
+                            patient_voting='maj',
                             ignore=[])
 
     if args.model_type in ['clam_sb', 'clam_mb']:

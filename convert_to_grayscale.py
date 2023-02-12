@@ -46,6 +46,7 @@ def load_slideio(path, image_name, dest_path='./', WSI_size=(38000,43000)):
 root_path = sys.argv[1]
 
 print(os.listdir(root_path))
+
 # dest_path = '/scratch/d/dsussman/fawasim/wsi_jpg_grey'+'_'+datetime.datetime.now().strftime('%Y_%h_%d__%H_%m')
 dest_path = '/scratch/d/dsussman/fawasim/wsi_jpg_grey_2022_Nov_20__23_11'
 

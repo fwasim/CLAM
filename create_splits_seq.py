@@ -18,7 +18,16 @@ parser.add_argument('--val_frac', type=float, default= 0.1,
 parser.add_argument('--test_frac', type=float, default= 0.1,
                     help='fraction of labels for test (default: 0.1)')
 
+parser.add_argument('--data_dir', type=str, default='./',
+                    help='directory relative to current path that contains the data used for filtering excel file (default: ./)')
+
 args = parser.parse_args()
+
+# Reading the data from input directory and prepping the filter such that only those data are taken in training/testing
+print('==========================================================')
+image_list = os.listdir(str(os.getcwd()) + '/' + args.data_dir)
+image_list = list(map(lambda a : int(a.split('.')[0]), image_list))
+print('Number of images in \'DATA_DIRECTORY\': ' + str(len(image_list)))
 
 if args.task == 'task_1_tumor_vs_normal':
     args.n_classes=2
@@ -26,7 +35,8 @@ if args.task == 'task_1_tumor_vs_normal':
                             shuffle = False, 
                             seed = args.seed, 
                             print_info = True,
-                            label_dict = {'normal_tissue':0, 'tumor_tissue':1},
+                            label_dict = {4:0, 5:1},
+                            filter_dict = {'slide_id':image_list},
                             patient_strat=True,
                             ignore=[])
 
@@ -36,7 +46,8 @@ elif args.task == 'task_2_tumor_subtyping':
                             shuffle = False, 
                             seed = args.seed, 
                             print_info = True,
-                            label_dict = {'subtype_1':0, 'subtype_2':1, 'subtype_3':2},
+                            label_dict = {4:0, 5:1},
+                            filter_dict = {'slide_id':image_list},
                             patient_strat= True,
                             patient_voting='maj',
                             ignore=[])

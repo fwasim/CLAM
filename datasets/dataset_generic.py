@@ -62,9 +62,15 @@ class Generic_WSI_Classification_Dataset(Dataset):
 			label_col = 'label'
 		self.label_col = label_col
 
-		slide_data = pd.read_csv(csv_path)
+		slide_data = pd.read_csv(csv_path, dtype={'case_id': 'Int64', 'slide_id': 'Int64', 'label': np.float64})
+		print('Shape of data frame holding data labels after reading from csv: ')
+		print(slide_data.shape)
 		slide_data = self.filter_df(slide_data, filter_dict)
+		print('Shape of data frame holding data labels after filtering: ')
+		print(slide_data.shape)
 		slide_data = self.df_prep(slide_data, self.label_dict, ignore, self.label_col)
+		print('Shape of data frame holding data labels after prep: ')
+		print(slide_data.shape)
 
 		###shuffle data
 		if shuffle:
@@ -96,8 +102,15 @@ class Generic_WSI_Classification_Dataset(Dataset):
 		
 		for p in patients:
 			locations = self.slide_data[self.slide_data['case_id'] == p].index.tolist()
+			#print('locations:')
+			#print(locations)
 			assert len(locations) > 0
 			label = self.slide_data['label'][locations].values
+			#print('+++++++++++++++++++++++++')
+			#print('label:')
+			#print(label)
+			#print('label type:')
+			#print(type(label))
 			if patient_voting == 'max':
 				label = label.max() # get patient label (MIL convention)
 			elif patient_voting == 'maj':
@@ -117,9 +130,15 @@ class Generic_WSI_Classification_Dataset(Dataset):
 		data = data[~mask]
 		data.reset_index(drop=True, inplace=True)
 		for i in data.index:
+			#print('i: ', str(i))
 			key = data.loc[i, 'label']
-			data.at[i, 'label'] = label_dict[key]
-
+			#print('key: ', str(key))
+			if (key == 4 or key == 5):
+				data.at[i, 'label'] = label_dict[key]
+			else:
+				print('Dropping row ' + str(i) + ' from dataframe')
+				print(data.loc[i])
+				data = data.drop(i)
 		return data
 
 	def filter_df(self, df, filter_dict={}):
@@ -326,31 +345,38 @@ class Generic_MIL_Dataset(Generic_WSI_Classification_Dataset):
 		self.use_h5 = toggle
 
 	def __getitem__(self, idx):
-		slide_id = self.slide_data['slide_id'][idx]
-		label = self.slide_data['label'][idx]
-		if type(self.data_dir) == dict:
-			source = self.slide_data['source'][idx]
-			data_dir = self.data_dir[source]
-		else:
-			data_dir = self.data_dir
-
-		if not self.use_h5:
-			if self.data_dir:
-				full_path = os.path.join(data_dir, 'pt_files', '{}.pt'.format(slide_id))
-				features = torch.load(full_path)
-				return features, label
-			
+		try:
+			slide_id = self.slide_data['slide_id'][idx]
+			label = self.slide_data['label'][idx]
+			if type(self.data_dir) == dict:
+				source = self.slide_data['source'][idx]
+				data_dir = self.data_dir[source]
 			else:
-				return slide_id, label
+				data_dir = self.data_dir
 
-		else:
-			full_path = os.path.join(data_dir,'h5_files','{}.h5'.format(slide_id))
-			with h5py.File(full_path,'r') as hdf5_file:
-				features = hdf5_file['features'][:]
-				coords = hdf5_file['coords'][:]
+			if not self.use_h5:
+				if self.data_dir:
+					#print('Came to if')
+					full_path = os.path.join(data_dir, 'pt_files', '{}.pt'.format(slide_id))
+					#print('Full path: ', full_path)
+					features = torch.load(full_path)
+					return features, label
+				
+				else:
+					print('Came to else')
+					return slide_id, label
 
-			features = torch.from_numpy(features)
-			return features, label, coords
+			else:
+				full_path = os.path.join(data_dir,'h5_files','{}.h5'.format(slide_id))
+				with h5py.File(full_path,'r') as hdf5_file:
+					features = hdf5_file['features'][:]
+					coords = hdf5_file['coords'][:]
+
+				features = torch.from_numpy(features)
+				return features, label, coords
+		except FileNotFoundError as err:
+			print("Encountered the following error")
+			print(err)
 
 
 class Generic_Split(Generic_MIL_Dataset):
