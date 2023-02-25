@@ -21,13 +21,19 @@ parser.add_argument('--test_frac', type=float, default= 0.1,
 parser.add_argument('--data_dir', type=str, default='./',
                     help='directory relative to current path that contains the data used for filtering excel file (default: ./)')
 
+parser.add_argument('--csv_dir', type=str, default='./',
+                    help='path to csv file containing dataset info (default: ./)')
+
+parser.add_argument('--label_col', type=str, default='label',
+                    help='name of the column holding the labels (default: \'label\')')
+
 args = parser.parse_args()
 
 # Reading the data from input directory and prepping the filter such that only those data are taken in training/testing
 print('==========================================================')
 image_list = os.listdir(str(os.getcwd()) + '/' + args.data_dir)
 image_list = list(map(lambda a : int(a.split('.')[0]), image_list))
-print('Number of images in \'DATA_DIRECTORY\': ' + str(len(image_list)))
+print('Number of images in \'' + args.data_dir.split('/')[-1] + '\': ' + str(len(image_list)))
 
 if args.task == 'task_1_tumor_vs_normal':
     args.n_classes=2
@@ -42,7 +48,7 @@ if args.task == 'task_1_tumor_vs_normal':
 
 elif args.task == 'task_2_tumor_subtyping':
     args.n_classes=3
-    dataset = Generic_WSI_Classification_Dataset(csv_path = 'dataset_csv/tumor_subtyping_dummy_clean.csv',
+    dataset = Generic_WSI_Classification_Dataset(csv_path = args.csv_dir,
                             shuffle = False, 
                             seed = args.seed, 
                             print_info = True,
@@ -50,7 +56,8 @@ elif args.task == 'task_2_tumor_subtyping':
                             filter_dict = {'slide_id':image_list},
                             patient_strat= True,
                             patient_voting='maj',
-                            ignore=[])
+                            ignore=[],
+                            label_col = 'encoded Sublabel')
 
 else:
     raise NotImplementedError
