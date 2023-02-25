@@ -71,7 +71,7 @@ def main(args):
 # Generic training settings
 parser = argparse.ArgumentParser(description='Configurations for WSI Training')
 parser.add_argument('--data_root_dir', type=str, default=None, 
-                    help='data directory')
+                    help='data directory, where pt files are located')
 parser.add_argument('--max_epochs', type=int, default=200,
                     help='maximum number of epochs to train (default: 200)')
 parser.add_argument('--lr', type=float, default=1e-4,
@@ -186,7 +186,7 @@ if args.task == 'task_1_tumor_vs_normal':
                             ignore=[])
 
 elif args.task == 'task_2_tumor_subtyping':
-    args.n_classes=7
+    args.n_classes=2
     dataset = Generic_MIL_Dataset(csv_path = args.csv_dir,
                             data_dir= os.path.join(args.data_root_dir),
                             shuffle = False, 
