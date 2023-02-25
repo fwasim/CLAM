@@ -116,6 +116,13 @@ parser.add_argument('--image_dir', type=str, default='./',
                     help='directory relative to current path that contains the data, used for filtering excel file (default: ./)')
 parser.add_argument('--use_h5', type=bool, default=False,
                     help='Indicate if the .h5 files from the output of feature extraction are to be used instead of the .pt files (default: False)')
+
+parser.add_argument('--csv_dir', type=str, default='./',
+                    help='path to csv file containing dataset info (default: ./)')
+
+parser.add_argument('--label_col', type=str, default='label',
+                    help='name of the column holding the labels (default: \'label\')')
+
 args = parser.parse_args()
 
 # Reading the data from input directory and prepping the filter such that only those data are taken in training/testing
@@ -180,17 +187,18 @@ if args.task == 'task_1_tumor_vs_normal':
 
 elif args.task == 'task_2_tumor_subtyping':
     args.n_classes=7
-    dataset = Generic_MIL_Dataset(csv_path = 'dataset_csv/tumor_subtyping_dummy_clean.csv',
+    dataset = Generic_MIL_Dataset(csv_path = args.csv_dir,
                             data_dir= os.path.join(args.data_root_dir),
                             shuffle = False, 
                             seed = args.seed, 
                             print_info = True,
-                            label_dict = {1:0, 2:1, 3:2, 4:3, 5:4, 6:5, 7:6},
+                            label_dict = {6:0, 7:1},
                             filter_dict = {'slide_id':image_list},
                             patient_strat= True,
                             patient_voting='maj',
                             use_h5=args.use_h5,
-                            ignore=[])
+                            ignore=[],
+                            label_col = 'encoded Sublabel')
 
     if args.model_type in ['clam_sb', 'clam_mb']:
         assert args.subtyping 
