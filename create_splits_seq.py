@@ -35,13 +35,20 @@ image_list = os.listdir(str(os.getcwd()) + '/' + args.data_dir)
 image_list = list(map(lambda a : int(a.split('.')[0]), image_list))
 print('Number of images in \'' + args.data_dir.split('/')[-1] + '\': ' + str(len(image_list)))
 
+label_dict = {1:0, 2:1, 3:2}
+
+print('\n*****************************************************')
+print('Label mapping dictionary. Check if this is correct!\n')
+print(str(label_dict))
+print('******************************************************\n')
+
 if args.task == 'task_1_tumor_vs_normal':
     args.n_classes=2
     dataset = Generic_WSI_Classification_Dataset(csv_path = 'dataset_csv/tumor_vs_normal_dummy_clean.csv',
                             shuffle = False, 
                             seed = args.seed, 
                             print_info = True,
-                            label_dict = {4:0, 5:1},
+                            label_dict = label_dict,
                             filter_dict = {'slide_id':image_list},
                             patient_strat=True,
                             ignore=[])
@@ -52,7 +59,7 @@ elif args.task == 'task_2_tumor_subtyping':
                             shuffle = False, 
                             seed = args.seed, 
                             print_info = True,
-                            label_dict = {6:0, 7:1},
+                            label_dict = label_dict,
                             filter_dict = {'slide_id':image_list},
                             patient_strat= True,
                             patient_voting='maj',

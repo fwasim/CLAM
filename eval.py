@@ -44,6 +44,8 @@ parser.add_argument('--split', type=str, choices=['train', 'val', 'test', 'all']
 parser.add_argument('--task', type=str, choices=['task_1_tumor_vs_normal',  'task_2_tumor_subtyping'])
 parser.add_argument('--image_dir', type=str, default='./',
                     help='directory relative to current path that contains the data, used for filtering excel file (default: ./)')
+parser.add_argument('--csv_dir', type=str, default='./',
+                    help='path to csv file containing dataset info (default: ./)')
 args = parser.parse_args()
 
 # Reading the data from input directory and prepping the filter such that only those data are taken in training/testing
@@ -52,11 +54,21 @@ image_list = os.listdir(str(os.getcwd()) + '/' + args.image_dir)
 image_list = list(map(lambda a : float(a.split('.')[0]), image_list))
 print('Number of images in \''+ args.image_dir + '\': ' + str(len(image_list)))
 
+label_dict = {6:0, 7:1}
+label_col = 'encoded Sublabel'
+print('\n*****************************************************')
+print('Check if the following are correct:\n')
+print('Label mapping dictionary:')
+print(str(label_dict))
+print('\nLabel column:')
+print(str(label_col))
+print('******************************************************\n')
+
 device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 args.save_dir = os.path.join('./eval_results', 'EVAL_' + str(args.save_exp_code))
 args.models_dir = os.path.join(args.results_dir, str(args.models_exp_code))
-
+print('models_dir: ' + args.models_dir)
 os.makedirs(args.save_dir, exist_ok=True)
 
 if args.splits_dir is None:
@@ -80,25 +92,27 @@ f.close()
 print(settings)
 if args.task == 'task_1_tumor_vs_normal':
     args.n_classes=2
-    dataset = Generic_MIL_Dataset(csv_path = 'dataset_csv/tumor_vs_normal_dummy_clean.csv',
+    dataset = Generic_MIL_Dataset(csv_path = args.csv_dir,
                             data_dir= os.path.join(args.data_root_dir),
                             shuffle = False, 
                             print_info = True,
-                            label_dict = {4:0, 5:1},
+                            label_dict = label_dict,
                             patient_strat=False,
                             filter_dict = {'slide_id':image_list},
-                            ignore=[])
+                            ignore=[],
+                            label_col = label_col)
 
 elif args.task == 'task_2_tumor_subtyping':
     args.n_classes=2
-    dataset = Generic_MIL_Dataset(csv_path = 'dataset_csv/tumor_subtyping_dummy_clean.csv',
+    dataset = Generic_MIL_Dataset(csv_path = args.csv_dir,
                             data_dir= os.path.join(args.data_root_dir),
                             shuffle = False, 
                             print_info = True,
-                            label_dict = {4:0, 5:1},
+                            label_dict = label_dict,
                             patient_strat= False,
                             filter_dict = {'slide_id':image_list},
-                            ignore=[])
+                            ignore=[],
+                            label_col = label_col)
 
 # elif args.task == 'tcga_kidney_cv':
 #     args.n_classes=3
@@ -135,9 +149,12 @@ if __name__ == "__main__":
     all_acc = []
     for ckpt_idx in range(len(ckpt_paths)):
         if datasets_id[args.split] < 0:
+            print("Came to if")
             split_dataset = dataset
         else:
+            print("Came to else")
             csv_path = '{}/splits_{}.csv'.format(args.splits_dir, folds[ckpt_idx])
+            print('CSV path: ' + csv_path)
             datasets = dataset.return_splits(from_id=False, csv_path=csv_path)
             split_dataset = datasets[datasets_id[args.split]]
         model, patient_results, test_error, auc, df  = eval(split_dataset, args, ckpt_paths[ckpt_idx])

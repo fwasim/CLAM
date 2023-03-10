@@ -67,8 +67,8 @@ class Generic_WSI_Classification_Dataset(Dataset):
 			label_col = 'label'
 		self.label_col = label_col
 
-		print('+-+-+-+-+-came to parent constructor+-+-+-+-+-+-')
-		print('use_h5: ' + str(self.use_h5))
+		# print('+-+-+-+-+-came to parent constructor+-+-+-+-+-+-')
+		# print('use_h5: ' + str(self.use_h5))
 
 		slide_data = pd.read_csv(csv_path, dtype={'case_id': 'Int64', 'slide_id': np.float64, 'label': np.float64})
 		print('Shape of data frame holding data labels after reading from csv: ')
@@ -79,7 +79,7 @@ class Generic_WSI_Classification_Dataset(Dataset):
 		slide_data = self.df_prep(slide_data, self.label_dict, ignore, self.label_col)
 		print('Shape of data frame holding data labels after prep: ')
 		print(slide_data.shape)
-
+		# print('label dict: ', str(label_dict))
 		###shuffle data
 		if shuffle:
 			np.random.seed(seed)
@@ -349,8 +349,9 @@ class Generic_MIL_Dataset(Generic_WSI_Classification_Dataset):
 		self.data_dir = data_dir
 		# self.use_h5 = False
 		# self.use_h5 = use_h5
-		print('+-+-+-+-+-came to first child constructor+-+-+-+-+-+-')
-		print('h5: ' + str(self.use_h5))
+		# print('+-+-+-+-+-came to first child constructor+-+-+-+-+-+-')
+		# print('h5: ' + str(self.use_h5))
+		# print('label dict: ', kwargs)
 
 	def load_from_h5(self, toggle):
 		self.use_h5 = toggle
@@ -398,8 +399,8 @@ class Generic_Split(Generic_MIL_Dataset):
 		self.num_classes = num_classes
 		self.slide_cls_ids = [[] for i in range(self.num_classes)]
 
-		print('+-+-+-+-+-came to grandchild constructor+-+-+-+-+-+-')
-		print('use_h5: ' + str(self.use_h5))
+		# print('+-+-+-+-+-came to grandchild constructor+-+-+-+-+-+-')
+		# print('use_h5: ' + str(self.use_h5))
 
 		for i in range(self.num_classes):
 			self.slide_cls_ids[i] = np.where(self.slide_data['label'] == i)[0]

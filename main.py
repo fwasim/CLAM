@@ -19,9 +19,12 @@ import torch.nn.functional as F
 
 import pandas as pd
 import numpy as np
+import datetime
 
 
 def main(args):
+    if args.results_dir is None:
+        args.results_dir = './results_' + datetime.datetime.now().strftime('%d_%h_%Y__%H_%m')
     # create results directory if necessary
     if not os.path.isdir(args.results_dir):
         os.mkdir(args.results_dir)
@@ -131,6 +134,16 @@ image_list = os.listdir(str(os.getcwd()) + '/' + args.image_dir)
 image_list = list(map(lambda a : float(a.split('.')[0]), image_list))
 print('Number of images in \''+ args.image_dir + '\': ' + str(len(image_list)))
 
+label_dict = {1:0, 2:1, 3:2}
+label_col = 'encoded Sublabel'
+print('\n*****************************************************')
+print('Check if the following are correct:\n')
+print('Label mapping dictionary:')
+print(str(label_dict))
+print('\nLabel column:')
+print(str(label_col))
+print('******************************************************\n')
+
 device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def seed_torch(seed=7):
@@ -175,30 +188,31 @@ print('\nLoad Dataset')
 
 if args.task == 'task_1_tumor_vs_normal':
     args.n_classes=2
-    dataset = Generic_MIL_Dataset(csv_path = 'dataset_csv/tumor_vs_normal_dummy_clean.csv',
-                            data_dir= os.path.join(args.data_root_dir),
-                            shuffle = False, 
-                            seed = args.seed, 
-                            print_info = True,
-                            label_dict = {4:0, 5:1},
-                            filter_dict = {'slide_id':image_list},
-                            patient_strat=False,
-                            ignore=[])
-
-elif args.task == 'task_2_tumor_subtyping':
-    args.n_classes=2
     dataset = Generic_MIL_Dataset(csv_path = args.csv_dir,
                             data_dir= os.path.join(args.data_root_dir),
                             shuffle = False, 
                             seed = args.seed, 
                             print_info = True,
-                            label_dict = {6:0, 7:1},
+                            label_dict = label_dict,
+                            filter_dict = {'slide_id':image_list},
+                            patient_strat=False,
+                            ignore=[],
+                            label_col = label_col)
+
+elif args.task == 'task_2_tumor_subtyping':
+    args.n_classes=3
+    dataset = Generic_MIL_Dataset(csv_path = args.csv_dir,
+                            data_dir= os.path.join(args.data_root_dir),
+                            shuffle = False, 
+                            seed = args.seed, 
+                            print_info = True,
+                            label_dict = label_dict,
                             filter_dict = {'slide_id':image_list},
                             patient_strat= True,
                             patient_voting='maj',
                             use_h5=args.use_h5,
                             ignore=[],
-                            label_col = 'encoded Sublabel')
+                            label_col = label_col)
 
     if args.model_type in ['clam_sb', 'clam_mb']:
         assert args.subtyping 
@@ -216,7 +230,7 @@ if not os.path.isdir(args.results_dir):
 if args.split_dir is None:
     args.split_dir = os.path.join('CLAM_fork/CLAM/splits', args.task+'_{}'.format(int(args.label_frac*100)))
 else:
-    args.split_dir = os.path.join('splits', args.split_dir)
+    args.split_dir = os.path.join(args.split_dir, 'splits', args.task+'_{}'.format(int(args.label_frac*100)))
 
 print('split_dir: ', args.split_dir)
 assert os.path.isdir(args.split_dir)

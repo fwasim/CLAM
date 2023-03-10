@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from utils.utils import initialize_weights
 import numpy as np
+from nystrom_attention import NystromAttention
 
 """
 Attention Network without Gating (2 fc layers)
@@ -63,6 +64,25 @@ class Attn_Net_Gated(nn.Module):
         A = self.attention_c(A)  # N x n_classes
         return A, x
 
+class TransLayer(nn.Module):
+    def __init__(self, norm_layer=nn.LayerNorm, dim=512):
+        super().__init__()
+        self.norm = norm_layer(dim)
+        self.attn = NystromAttention(
+            dim = dim,
+            dim_head = dim//8,
+            heads = 8,
+            num_landmarks = dim//2,    # number of landmarks
+            pinv_iterations = 6,    # number of moore-penrose iterations for approximating pinverse. 6 was recommended by the paper
+            residual = True,         # whether to do an extra residual with the value or not. supposedly faster convergence if turned on
+            dropout=0.1
+        )
+
+    def forward(self, x):
+        x = x + self.attn(self.norm(x))
+
+        return x
+
 """
 args:
     gate: whether to use gated attention network
@@ -87,6 +107,9 @@ class CLAM_SB(nn.Module):
             attention_net = Attn_Net_Gated(L = size[1], D = size[2], dropout = dropout, n_classes = 1)
         else:
             attention_net = Attn_Net(L = size[1], D = size[2], dropout = dropout, n_classes = 1)
+
+        # attention_net = TransLayer(dim=512)
+
         fc.append(attention_net)
         self.attention_net = nn.Sequential(*fc)
         self.classifiers = nn.Linear(size[1], n_classes)
