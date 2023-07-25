@@ -5,7 +5,7 @@ import pandas as pd
 # splits it to create 3 other excel files each corresponding to one of the 3 
 # labels with their corresponding sublabels
 
-PATH_TO_EXCEL_FILE = '/Users/farhanahmedwasim/Desktop/MEng/Final project/dataset_images_100_percent.xlsx'
+PATH_TO_EXCEL_FILE = '/scratch/d/dsussman/fawasim/dataset_images_100_percent.xlsx'
 # IMAGE_DIR = '/Users/farhanahmedwasim/Desktop/MEng/Final project/Raw WSIs/BENIGN'
 categories = ['Benign', 'Neoplasia', 'Hyperplasia']
 
@@ -41,16 +41,16 @@ for category in categories:
     print(df['encoded Sublabel'].value_counts())
 
     if category == 'Hyperplasia':
-        EXCEL_FILE_DEST_PATH = '/Users/farhanahmedwasim/Desktop/MEng/Final project/dataset_' + category_lower_case + '.csv'
+        EXCEL_FILE_DEST_PATH = '/scratch/d/dsussman/fawasim/Output/' + category + '/dataset_' + category_lower_case + '.csv'
     elif category == 'Neoplasia':
-        EXCEL_FILE_DEST_PATH = '/Users/farhanahmedwasim/Desktop/MEng/Final project/dataset_' + category_lower_case + '.csv'
+        EXCEL_FILE_DEST_PATH = '/scratch/d/dsussman/fawasim/Output/' + category + '/dataset_' + category_lower_case + '.csv'
     else:
-        EXCEL_FILE_DEST_PATH = '/Users/farhanahmedwasim/Desktop/MEng/Final project/dataset_' + category_lower_case + '.csv'
+        EXCEL_FILE_DEST_PATH = '/scratch/d/dsussman/fawasim/Output/' + category + '/dataset_' + category_lower_case + '.csv'
 
-    df.to_csv(EXCEL_FILE_DEST_PATH)
     # Keep only the columns interested
-    print('\nKeeping only the columns needed. This is how the filtered excel file looks like::\n')
-    df = df[['Participant ID', 'Label', 'Sublabel', 'encoded_label', 'encoded Sublabel']]
+#    print('\nKeeping only the columns needed. This is how the filtered excel file looks like::\n')
+ #   df = df[['Participant ID', 'Label', 'Sublabel', 'encoded_label', 'encoded Sublabel']]
+    df.to_csv(EXCEL_FILE_DEST_PATH)
     print(df.head())
 
 # Reading the data from folder and filtering out rows that don't correspond to valid file names

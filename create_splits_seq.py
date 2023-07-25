@@ -33,9 +33,13 @@ args = parser.parse_args()
 print('==========================================================')
 image_list = os.listdir(str(os.getcwd()) + '/' + args.data_dir)
 image_list = list(map(lambda a : int(a.split('.')[0]), image_list))
+
+if args.data_dir[-1] == '/':
+    args.data_dir = args.data_dir[:-1]
+
 print('Number of images in \'' + args.data_dir.split('/')[-1] + '\': ' + str(len(image_list)))
 
-label_dict = {1:0, 2:1, 3:2}
+label_dict = {6:0, 7:1}
 
 print('\n*****************************************************')
 print('Label mapping dictionary. Check if this is correct!\n')
@@ -54,7 +58,7 @@ if args.task == 'task_1_tumor_vs_normal':
                             ignore=[])
 
 elif args.task == 'task_2_tumor_subtyping':
-    args.n_classes=3
+    args.n_classes=2
     dataset = Generic_WSI_Classification_Dataset(csv_path = args.csv_dir,
                             shuffle = False, 
                             seed = args.seed, 
@@ -90,6 +94,3 @@ if __name__ == '__main__':
             save_splits(splits, ['train', 'val', 'test'], os.path.join(split_dir, 'splits_{}.csv'.format(i)))
             save_splits(splits, ['train', 'val', 'test'], os.path.join(split_dir, 'splits_{}_bool.csv'.format(i)), boolean_style=True)
             descriptor_df.to_csv(os.path.join(split_dir, 'splits_{}_descriptor.csv'.format(i)))
-
-
-
