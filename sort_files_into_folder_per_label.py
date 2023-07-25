@@ -3,6 +3,9 @@ from os.path import isfile, join
 import pandas as pd
 import shutil
 
+# This file takes all the feature vectors of all images, refers to the excel file containing the labels
+# and copies those feature vector files over to their appropriate folder
+
 PATH_TO_EXCEL_FILE = '/scratch/d/dsussman/fawasim/dataset_images_100_percent.xlsx'
 FEATURES_DIR = '/scratch/d/dsussman/fawasim/Image_features'
 FEATURES_DIR_H5 = FEATURES_DIR + '/h5_files'
