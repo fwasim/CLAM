@@ -37,8 +37,7 @@ for i in onlyfiles:
     test_df = df[df['Participant ID'] == file_name]
 
     if test_df.shape[0] == 1:
-        print("Entered if")
-        label = df["Label"].to_string()
+        label = test_df["Label"].to_string()
 
         if label == 'Benign':
             print("Copying file " + FEATURES_DIR_H5 + '/' + i + " to " + DEST_DIR_BENIGN_H5 + i)
@@ -53,9 +52,8 @@ for i in onlyfiles:
             shutil.copyfile(FEATURES_DIR_H5 + '/' + i, DEST_DIR_HYPERPLASIA_H5 + i)
             shutil.copyfile(FEATURES_DIR_PT + '/' + str(file_name) + '.pt', DEST_DIR_HYPERPLASIA_PT + str(file_name) + '.pt')
     else:
-        print("Entered else")
         if excluded_df.empty:
-            excluded_df = df
+            excluded_df = test_df
         else:
             excluded_df.append(df)
 
