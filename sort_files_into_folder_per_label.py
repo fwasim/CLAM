@@ -37,7 +37,7 @@ for i in onlyfiles:
     test_df = df[df['Participant ID'] == file_name]
 
     if test_df.shape[0] == 1:
-        label = test_df["Label"].to_string()
+        label = test_df["Label"].values[0]
 
         if label == 'Benign':
             print("Copying file " + FEATURES_DIR_H5 + '/' + i + " to " + DEST_DIR_BENIGN_H5 + i)
@@ -58,13 +58,13 @@ for i in onlyfiles:
             excluded_df.append(df)
 
 print("\nNo. of Benign files copied:")
-print("h5 files:\t" + str(len([name for name in listdir('.') if isfile(join(DEST_DIR_BENIGN_H5, name))])))
-print("pt files:\t" + str(len([name for name in listdir('.') if isfile(join(DEST_DIR_BENIGN_PT, name))])))
+print("h5 files:\t" + str(len([name for name in listdir(DEST_DIR_BENIGN_H5) if isfile(join(DEST_DIR_BENIGN_H5, name))])))
+print("pt files:\t" + str(len([name for name in listdir(DEST_DIR_BENIGN_PT) if isfile(join(DEST_DIR_BENIGN_PT, name))])))
 
 print("\nNo. of Cancer files copied:")
-print("h5 files:\t" + str(len([name for name in listdir('.') if isfile(join(DEST_DIR_CANCER_H5, name))])))
-print("pt files:\t" + str(len([name for name in listdir('.') if isfile(join(DEST_DIR_CANCER_PT, name))])))
+print("h5 files:\t" + str(len([name for name in listdir(DEST_DIR_CANCER_H5) if isfile(join(DEST_DIR_CANCER_H5, name))])))
+print("pt files:\t" + str(len([name for name in listdir(DEST_DIR_CANCER_PT) if isfile(join(DEST_DIR_CANCER_PT, name))])))
 
 print("\nNo. of Hyperplasia files copied:")
-print("h5 files:\t" + str(len([name for name in listdir('.') if isfile(join(DEST_DIR_HYPERPLASIA_H5, name))])))
-print("pt files:\t" + str(len([name for name in listdir('.') if isfile(join(DEST_DIR_HYPERPLASIA_PT, name))])))
+print("h5 files:\t" + str(len([name for name in listdir(DEST_DIR_HYPERPLASIA_H5) if isfile(join(DEST_DIR_HYPERPLASIA_H5, name))])))
+print("pt files:\t" + str(len([name for name in listdir(DEST_DIR_HYPERPLASIA_PT) if isfile(join(DEST_DIR_HYPERPLASIA_PT, name))])))
