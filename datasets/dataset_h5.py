@@ -150,13 +150,13 @@ class Whole_Slide_Bag_FP(Dataset):
 			coord = hdf5_file['coords'][idx]
 		img = self.wsi.read_region(coord, self.patch_level, (self.patch_size, self.patch_size)).convert('RGB')  
         
-                greyscale_tfm = transforms.Grayscale(num_output_channels=3)
-                grey_img = greyscale_tfm(img)
+		greyscale_tfm = transforms.Grayscale(num_output_channels=3)
+		grey_img = greyscale_tfm(img)
 
 		if self.target_patch_size is not None:
 			grey_img = grey_img.resize(self.target_patch_size)
-                grey_img = self.roi_transforms(grey_img).unsqueeze(0)
-                return grey_img, coord
+		grey_img = self.roi_transforms(grey_img).unsqueeze(0)
+		return grey_img, coord
 
 class Dataset_All_Bags(Dataset):
 
