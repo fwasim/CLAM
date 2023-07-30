@@ -9,6 +9,7 @@ import time
 from datasets.dataset_h5 import Dataset_All_Bags, Whole_Slide_Bag_FP
 from torch.utils.data import DataLoader
 from models.resnet_custom import resnet50_baseline
+import models.resnet_wsi_pretrained
 import argparse
 from utils.utils import print_network, collate_features
 from utils.file_utils import save_hdf5
@@ -85,7 +86,8 @@ if __name__ == '__main__':
 	dest_files = os.listdir(os.path.join(args.feat_dir, 'pt_files'))
 
 	print('loading model checkpoint')
-	model = resnet50_baseline(pretrained=True)
+	model = get_model()
+	# model = resnet50_baseline(pretrained=True)
 	model = model.to(device)
 	
 	# print_network(model)
