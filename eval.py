@@ -149,12 +149,9 @@ if __name__ == "__main__":
     all_acc = []
     for ckpt_idx in range(len(ckpt_paths)):
         if datasets_id[args.split] < 0:
-            print("Came to if")
             split_dataset = dataset
         else:
-            print("Came to else")
             csv_path = '{}/splits_{}.csv'.format(args.splits_dir, folds[ckpt_idx])
-            print('CSV path: ' + csv_path)
             datasets = dataset.return_splits(from_id=False, csv_path=csv_path)
             split_dataset = datasets[datasets_id[args.split]]
         model, patient_results, test_error, auc, df  = eval(split_dataset, args, ckpt_paths[ckpt_idx])

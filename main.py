@@ -134,7 +134,7 @@ image_list = os.listdir(str(os.getcwd()) + '/' + args.image_dir)
 image_list = list(map(lambda a : float(a.split('.')[0]), image_list))
 print('Number of images in \''+ args.image_dir + '\': ' + str(len(image_list)))
 
-label_dict = {1:0, 2:1, 3:2}
+label_dict = {6:0, 7:1}
 label_col = 'encoded Sublabel'
 print('\n*****************************************************')
 print('Check if the following are correct:\n')
@@ -200,7 +200,7 @@ if args.task == 'task_1_tumor_vs_normal':
                             label_col = label_col)
 
 elif args.task == 'task_2_tumor_subtyping':
-    args.n_classes=3
+    args.n_classes=2
     dataset = Generic_MIL_Dataset(csv_path = args.csv_dir,
                             data_dir= os.path.join(args.data_root_dir),
                             shuffle = False, 
