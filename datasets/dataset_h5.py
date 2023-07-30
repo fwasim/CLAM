@@ -130,7 +130,7 @@ class Whole_Slide_Bag_FP(Dataset):
 			else:
 				self.target_patch_size = None
 		self.summary()
-
+			
 	def __len__(self):
 		return self.length
 
@@ -148,15 +148,12 @@ class Whole_Slide_Bag_FP(Dataset):
 	def __getitem__(self, idx):
 		with h5py.File(self.file_path,'r') as hdf5_file:
 			coord = hdf5_file['coords'][idx]
-
-		img = self.wsi.read_region(coord, self.patch_level, (self.patch_size, self.patch_size)).convert('RGB')		
-		greyscale_tfm = transforms.Grayscale(num_output_channels=3)
-		grey_img = greyscale_tfm(img)
+		img = self.wsi.read_region(coord, self.patch_level, (self.patch_size, self.patch_size)).convert('RGB')
 
 		if self.target_patch_size is not None:
-			grey_img = grey_img.resize(self.target_patch_size)
-		grey_img = self.roi_transforms(grey_img).unsqueeze(0)
-		return grey_img, coord
+			img = img.resize(self.target_patch_size)
+		img = self.roi_transforms(img).unsqueeze(0)
+		return img, coord
 
 class Dataset_All_Bags(Dataset):
 
