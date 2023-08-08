@@ -1,8 +1,9 @@
 import torchvision
 import torch
+import os
 
 
-MODEL_PATH = '../../tenpercent_resnet18.ckpt'
+MODEL_PATH = os.path.join(os.getcwd(), 'CLAM_fork/CLAM/tenpercent_resnet18.ckpt')
 RETURN_PREACTIVATION = True  # return features from the model, if false return classification logits
 NUM_CLASSES = 4  # only used if RETURN_PREACTIVATION = False
 
