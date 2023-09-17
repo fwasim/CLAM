@@ -39,7 +39,18 @@ if args.data_dir[-1] == '/':
 
 print('Number of images in \'' + args.data_dir.split('/')[-1] + '\': ' + str(len(image_list)))
 
-label_dict = {6:0, 7:1}
+dataset_class = ""
+label_dict = {}
+
+if "Hyperplasia" in args.data_dir:
+    dataset_class = "Hyperplasia"
+    label_dict = {6:0, 7:1}
+elif "Cancer" in args.data_dir:
+    dataset_class = "Cancer"
+    label_dict = {4:0, 5:1}
+elif "Benign" in args.data_dir:
+    dataset_class = "Benign"
+    label_dict = {1:0, 2:1, 3: 2}
 
 print('\n*****************************************************')
 print('Label mapping dictionary. Check if this is correct!\n')
@@ -58,7 +69,13 @@ if args.task == 'task_1_tumor_vs_normal':
                             ignore=[])
 
 elif args.task == 'task_2_tumor_subtyping':
-    args.n_classes=2
+    if dataset_class == "Hyperplasia":
+        args.n_classes=2
+    elif dataset_class == "Cancer":
+        args.n_classes=2
+    elif dataset_class == "Benign":
+        args.n_classes=3
+        
     dataset = Generic_WSI_Classification_Dataset(csv_path = args.csv_dir,
                             shuffle = False, 
                             seed = args.seed, 
