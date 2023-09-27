@@ -203,7 +203,17 @@ def DrawMapFromCoords(canvas, wsi_object, coords, patch_size, vis_level, indices
         
         patch_id = indices[idx]
         coord = coords[patch_id]
-        patch = np.array(wsi_object.wsi.read_region(tuple(coord), vis_level, patch_size).convert("RGB"))
+
+        if wsi_object.augment:
+            if wsi_object.augmentation == Image.FLIP_LEFT_RIGHT:
+                # Augmenting the image before stitching back for visualization purposes. Here we are both translating the coordinates as
+                # well as flipping the individual patches
+                patch = np.array(wsi_object.wsi.read_region(tuple((wsi_object.wsi.level_dimensions[0][0] - coord[0], coord[1])), vis_level, patch_size).convert("RGB").transpose(wsi_object.augmentation))
+            else:
+                patch = np.array(wsi_object.wsi.read_region(tuple(coord), vis_level, patch_size).convert("RGB"))
+        else:
+            patch = np.array(wsi_object.wsi.read_region(tuple(coord), vis_level, patch_size).convert("RGB"))
+
         coord = np.ceil(coord / downsamples).astype(np.int32)
         canvas_crop_shape = canvas[coord[1]:coord[1]+patch_size[1], coord[0]:coord[0]+patch_size[0], :3].shape[:2]
         canvas[coord[1]:coord[1]+patch_size[1], coord[0]:coord[0]+patch_size[0], :3] = patch[:canvas_crop_shape[0], :canvas_crop_shape[1], :]

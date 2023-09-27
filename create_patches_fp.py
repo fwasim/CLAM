@@ -55,12 +55,20 @@ def seg_and_patch(source, save_dir, patch_save_dir, mask_save_dir, stitch_save_d
 				  use_default_params = False, 
 				  seg = False, save_mask = True, 
 				  stitch= False, 
-				  patch = False, auto_skip=True, process_list = None):
-	
+				  patch = False, auto_skip=True, process_list = None,
+				  augment=False):
+
 
 
 	slides = sorted(os.listdir(source))
 	slides = [slide for slide in slides if os.path.isfile(os.path.join(source, slide))]
+
+	if augment:
+		print("args.augment: " + str(augment))
+		process_augmented_slide_id(slides) # Adding additional slide ids for augmentation downstream
+
+	slides = sorted(slides)
+
 	if process_list is None:
 		df = initialize_df(slides, seg_params, filter_params, vis_params, patch_params)
 	
@@ -101,9 +109,24 @@ def seg_and_patch(source, save_dir, patch_save_dir, mask_save_dir, stitch_save_d
 			df.loc[idx, 'status'] = 'already_exist'
 			continue
 
-		# Inialize WSI
-		full_path = os.path.join(source, slide)
-		WSI_object = WholeSlideImage(full_path)
+		if augment:
+			if is_augmented_slide(slide):	# Checking if the slide id corresponds to augmented slide
+				slide_name = slide	# Name of the augmented file
+				# Since the file names are sorted in the list, each file name is followed by the name of the augmented version of that file.
+				# Hence getting the previous index to read the actual file.  
+				idx_seg = process_stack.index[i - 1]
+				slide = process_stack.loc[idx_seg, 'slide_id']	# Name of the actual file to augment from
+				# Inialize WSI
+				full_path = os.path.join(source, slide)
+				WSI_object = WholeSlideImage(full_path, True, slide_name)
+			else:
+				# Inialize WSI
+				full_path = os.path.join(source, slide)
+				WSI_object = WholeSlideImage(full_path)
+		else:
+			# Inialize WSI
+			full_path = os.path.join(source, slide)
+			WSI_object = WholeSlideImage(full_path)
 
 		if use_default_params:
 			current_vis_params = vis_params.copy()
@@ -226,6 +249,20 @@ def seg_and_patch(source, save_dir, patch_save_dir, mask_save_dir, stitch_save_d
 		
 	return seg_times, patch_times
 
+def is_augmented_slide(slide_id):
+	if 'flip' in slide_id.split('.')[0].split('_') or 'rot' in slide_id.split('.')[0].split('_'):
+		return True
+	return False
+
+
+def process_augmented_slide_id(slide_ids):
+	for i in range(len(slide_ids)):
+		# if i % 2 == 0:
+		# 	slide_ids.append(slide_ids[i].split('.')[0] + '_rot_180.' + slide_ids[i].split('.')[1])
+		# else:
+		slide_ids.append(slide_ids[i].split('.')[0] + '_hor_flip.' + slide_ids[i].split('.')[1])
+	print("Augmenting " + str(len(slide_ids)) + " files by flipping horizontally")
+
 parser = argparse.ArgumentParser(description='seg and patch')
 parser.add_argument('--source', type = str,
 					help='path to folder containing raw wsi image files')
@@ -245,6 +282,8 @@ parser.add_argument('--patch_level', type=int, default=0,
 					help='downsample level at which to patch')
 parser.add_argument('--process_list',  type = str, default=None,
 					help='name of list of images to process with parameters (.csv)')
+parser.add_argument('--augment',  type = bool, default=False,
+					help='if we want to create slide ids to facilitate later augmentation')
 
 if __name__ == '__main__':
 	args = parser.parse_args()
@@ -307,4 +346,5 @@ if __name__ == '__main__':
 											seg = args.seg,  use_default_params=False, save_mask = True, 
 											stitch= args.stitch,
 											patch_level=args.patch_level, patch = args.patch,
-											process_list = process_list, auto_skip=args.no_auto_skip)
+											process_list = process_list, auto_skip=args.no_auto_skip,
+											augment = args.augment)

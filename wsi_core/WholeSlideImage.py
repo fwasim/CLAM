@@ -20,7 +20,7 @@ from utils.file_utils import load_pkl, save_pkl
 Image.MAX_IMAGE_PIXELS = 933120000
 
 class WholeSlideImage(object):
-    def __init__(self, path):
+    def __init__(self, path, augment=False, slide_id = ""):
 
         """
         Args:
@@ -36,6 +36,15 @@ class WholeSlideImage(object):
         self.contours_tissue = None
         self.contours_tumor = None
         self.hdf5_file = None
+        self.augment = augment
+
+        if augment:
+            self.name = slide_id.split('.')[0]  # Setting the name of the file to the augmented name, rather the the file being read from
+            # Setting the augmentation type based on the name of the new file
+            if 'flip' in slide_id.split('.')[0].split("_"):
+                self.augmentation = Image.FLIP_LEFT_RIGHT
+            if 'rot' in slide_id.split('.')[0].split("_"):
+                self.augmentation = Image.ROTATE_180
 
     def getOpenSlide(self):
         return self.wsi
@@ -142,7 +151,12 @@ class WholeSlideImage(object):
 
             return foreground_contours, hole_contours
         
-        img = np.array(self.wsi.read_region((0,0), seg_level, self.level_dim[seg_level]))
+        img = 0
+        if self.augment:
+            # Augmenting the file before being segmented
+            img = np.array(self.wsi.read_region((0,0), seg_level, self.level_dim[seg_level]).transpose(self.augmentation))
+        else:
+            img = np.array(self.wsi.read_region((0,0), seg_level, self.level_dim[seg_level]))
         img_hsv = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)  # Convert to HSV space
         img_med = cv2.medianBlur(img_hsv[:,:,1], mthresh)  # Apply median blurring
         
@@ -197,7 +211,12 @@ class WholeSlideImage(object):
             top_left = (0,0)
             region_size = self.level_dim[vis_level]
 
-        img = np.array(self.wsi.read_region(top_left, vis_level, region_size).convert("RGB"))
+        img = 0
+        if self.augment:
+            # Augmenting the file before creating masks
+            img = np.array(self.wsi.read_region(top_left, vis_level, region_size).convert("RGB").transpose(self.augmentation))
+        else:
+            img = np.array(self.wsi.read_region(top_left, vis_level, region_size).convert("RGB"))
         
         if not view_slide_only:
             offset = tuple(-(np.array(top_left) * scale).astype(int))
