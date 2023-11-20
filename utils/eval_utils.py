@@ -13,6 +13,9 @@ from utils.core_utils import Accuracy_Logger
 from sklearn.metrics import roc_auc_score, roc_curve, auc
 from sklearn.preprocessing import label_binarize
 import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 def initiate_model(args, ckpt_path):
     print('Init Model')    
@@ -50,12 +53,51 @@ def eval(dataset, args, ckpt_path):
     
     print('Init Loaders')
     loader = get_simple_loader(dataset)
-    patient_results, test_error, auc, df, _ = summary(model, loader, args)
+    print("Checkpoint path: " + str(ckpt_path))
+    fold_no = ckpt_path.split("/")[-1].split("_")[1]
+    patient_results, test_error, auc, df, _ = summary(model, loader, args, fold_no)
     print('test_error: ', test_error)
     print('auc: ', auc)
     return model, patient_results, test_error, auc, df
 
-def summary(model, loader, args):
+
+def compute_class_metrics(all_labels, all_preds, n_classes):
+    metrics = {'TP': [], 'TN': [], 'FP': [], 'FN': []}
+
+    for c in range(n_classes):
+        tp = np.sum((all_labels == c) & (all_preds == c))
+        tn = np.sum((all_labels != c) & (all_preds != c))
+        fp = np.sum((all_labels != c) & (all_preds == c))
+        fn = np.sum((all_labels == c) & (all_preds != c))
+        
+        metrics['TP'].append(tp)
+        metrics['TN'].append(tn)
+        metrics['FP'].append(fp)
+        metrics['FN'].append(fn)
+
+    return metrics
+
+def compute_class_metrics_percentage(all_labels, all_preds, n_classes):
+    metrics = {'TP (%)': [], 'TN (%)': [], 'FP (%)': [], 'FN (%)': []}
+
+    for c in range(n_classes):
+        tp = np.sum((all_labels == c) & (all_preds == c))
+        tn = np.sum((all_labels != c) & (all_preds != c))
+        fp = np.sum((all_labels != c) & (all_preds == c))
+        fn = np.sum((all_labels == c) & (all_preds != c))
+        
+        total_actual_positives = np.sum(all_labels == c)
+        total_actual_negatives = np.sum(all_labels != c)
+        
+        metrics['TP (%)'].append((tp / total_actual_positives if total_actual_positives != 0 else 0) * 100)
+        metrics['TN (%)'].append((tn / total_actual_negatives if total_actual_negatives != 0 else 0) * 100)
+        metrics['FP (%)'].append((fp / total_actual_negatives if total_actual_negatives != 0 else 0) * 100)
+        metrics['FN (%)'].append((fn / total_actual_positives if total_actual_positives != 0 else 0) * 100)
+
+    return metrics
+
+def summary(model, loader, args, fold_no):
+    print("Fold no: " + str(fold_no))
     acc_logger = Accuracy_Logger(n_classes=args.n_classes)
     model.eval()
     test_loss = 0.
@@ -80,11 +122,45 @@ def summary(model, loader, args):
         all_probs[batch_idx] = probs
         all_labels[batch_idx] = label.item()
         all_preds[batch_idx] = Y_hat.item()
-        
+
         patient_results.update({slide_id: {'slide_id': np.array(slide_id), 'prob': probs, 'label': label.item()}})
         
         error = calculate_error(Y_hat, label)
         test_error += error
+
+    cm = confusion_matrix(all_labels, all_preds)
+    plt.figure(figsize=(10, 7))
+    sns.heatmap(cm, annot=True, cmap='Blues', fmt='g')
+    plt.xlabel('Predicted')
+    plt.ylabel('Actual')
+    plt.title('Confusion Matrix')
+    plt.savefig('./confusion_matrix'+str(fold_no)+'.png')
+    plt.close()
+    
+    class_metrics = compute_class_metrics(all_labels, all_preds, args.n_classes)
+    # Create DataFrame for visualization
+    df_metrics = pd.DataFrame(class_metrics)
+
+    # Plotting
+    plt.figure(figsize=(10, 7))
+    sns.heatmap(df_metrics, annot=True, cmap='Blues', fmt='g', linewidths=.5)
+    plt.title('Metrics for Each Class')
+    plt.yticks(rotation=0)  # Keeps the class labels horizontal
+    plt.savefig('./metrics_table' + str(fold_no) + '.png')
+    plt.close()
+
+    class_metrics = compute_class_metrics_percentage(all_labels, all_preds, args.n_classes)
+    # Create DataFrame for visualization
+    df_metrics = pd.DataFrame(class_metrics)
+
+    # Plotting
+    plt.figure(figsize=(10, 7))
+    sns.heatmap(df_metrics, annot=True, cmap='Blues', fmt='.2f', linewidths=.5)
+    plt.title('Metrics for Each Class (in Percentage)')
+    plt.yticks(rotation=0)  # Keeps the class labels horizontal
+    plt.savefig('./metrics_table_percentage' + str(fold_no) + '.png')
+    plt.close()
+
 
     del data
     test_error /= len(loader)
