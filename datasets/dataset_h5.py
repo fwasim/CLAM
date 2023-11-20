@@ -7,6 +7,7 @@ import math
 import re
 import pdb
 import pickle
+from utils.file_utils import is_augmented_slide
 
 from torch.utils.data import Dataset, DataLoader, sampler
 from torchvision import transforms, utils, models
@@ -99,7 +100,8 @@ class Whole_Slide_Bag_FP(Dataset):
 		pretrained=False,
 		custom_transforms=None,
 		custom_downsample=1,
-		target_patch_size=-1
+		target_patch_size=-1,
+		augment=False
 		):
 		"""
 		Args:
@@ -111,6 +113,7 @@ class Whole_Slide_Bag_FP(Dataset):
 		"""
 		self.pretrained=pretrained
 		self.wsi = wsi
+		self.augment = augment
 		if not custom_transforms:
 			self.roi_transforms = eval_transforms(pretrained=pretrained)
 		else:
@@ -148,8 +151,14 @@ class Whole_Slide_Bag_FP(Dataset):
 	def __getitem__(self, idx):
 		with h5py.File(self.file_path,'r') as hdf5_file:
 			coord = hdf5_file['coords'][idx]
-		img = self.wsi.read_region(coord, self.patch_level, (self.patch_size, self.patch_size)).convert('RGB')  
-        
+		
+		if self.augment:
+			if is_augmented_slide(self.file_path):
+				img = self.wsi.read_region(tuple((self.wsi.level_dimensions[self.patch_level][0] - coord[0], coord[1])), self.patch_level, (self.patch_size, self.patch_size)).convert('RGB').transpose(Image.FLIP_LEFT_RIGHT)
+			else:
+				img = self.wsi.read_region(coord, self.patch_level, (self.patch_size, self.patch_size)).convert('RGB')
+		else:
+			img = self.wsi.read_region(coord, self.patch_level, (self.patch_size, self.patch_size)).convert('RGB')
 		greyscale_tfm = transforms.Grayscale(num_output_channels=3)
 		grey_img = greyscale_tfm(img)
 

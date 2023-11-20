@@ -131,19 +131,19 @@ args = parser.parse_args()
 # Reading the data from input directory and prepping the filter such that only those data are taken in training/testing
 print('==========================================================')
 image_list = os.listdir(str(os.getcwd()) + '/' + args.image_dir)
-image_list = list(map(lambda a : float(a.split('.')[0]), image_list))
+image_list = list(map(lambda a : a.split('.')[0], image_list))
 print('Number of images in \''+ args.image_dir + '\': ' + str(len(image_list)))
 
 dataset_class = ""
 label_dict = {}
 
-if "Hyperplasia" in args.data_dir:
+if "Hyperplasia" in args.data_root_dir:
     dataset_class = "Hyperplasia"
     label_dict = {6:0, 7:1}
-elif "Cancer" in args.data_dir:
+elif "Cancer" in args.data_root_dir:
     dataset_class = "Cancer"
     label_dict = {4:0, 5:1}
-elif "Benign" in args.data_dir:
+elif "Benign" in args.data_root_dir:
     dataset_class = "Benign"
     label_dict = {1:0, 2:1, 3: 2}
 

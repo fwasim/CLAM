@@ -151,10 +151,23 @@ def calculate_error(Y_hat, Y):
 	return error
 
 def make_weights_for_balanced_classes_split(dataset):
-	N = float(len(dataset))                                           
-	weight_per_class = [N/len(dataset.slide_cls_ids[c]) for c in range(len(dataset.slide_cls_ids))]                                                                                                     
-	weight = [0] * int(N)                                           
-	for idx in range(len(dataset)):   
+	N = float(len(dataset))
+	print('\ndataset.slide_cls_ids:\n')
+	print(dataset.slide_cls_ids)
+	print('len(dataset.slide_cls_ids): ' + str(len(dataset.slide_cls_ids)))
+	weight_per_class = []
+	for c in range(len(dataset.slide_cls_ids)):
+		print('c: ' + str(c))
+		print('\nlen(dataset.slide_cls_ids[c]): ' + str(len(dataset.slide_cls_ids[c])))
+		print('\ndataset.slide_cls_ids[c]:\n')
+		print(dataset.slide_cls_ids[c])
+		weight_per_class.append(N/len(dataset.slide_cls_ids[c]))
+	# weight_per_class = [N/len(dataset.slide_cls_ids[c]) for c in range(len(dataset.slide_cls_ids))]
+	weight = [0] * int(N)
+	print("len(dataset): " + str(len(dataset)))
+	print("len(weight): " + str(len(weight)))
+	print("len(weight_per_class): " + str(len(weight_per_class)))
+	for idx in range(len(dataset)):
 		y = dataset.getlabel(idx)                        
 		weight[idx] = weight_per_class[int(y)]                               
 

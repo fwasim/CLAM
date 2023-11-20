@@ -189,7 +189,7 @@ class CLAM_SB(nn.Module):
                     all_preds.extend(preds.cpu().numpy())
                     all_targets.extend(targets.cpu().numpy())
                 else: #out-of-the-class
-                    if self.subtyping:
+                    if self.subtyping: # This is being set to true by default
                         instance_loss, preds, targets = self.inst_eval_out(A, h, classifier)
                         all_preds.extend(preds.cpu().numpy())
                         all_targets.extend(targets.cpu().numpy())
@@ -260,7 +260,7 @@ class CLAM_MB(CLAM_SB):
                     all_preds.extend(preds.cpu().numpy())
                     all_targets.extend(targets.cpu().numpy())
                 else: #out-of-the-class
-                    if self.subtyping:
+                    if self.subtyping: # This is being set to true by default
                         instance_loss, preds, targets = self.inst_eval_out(A[i], h, classifier)
                         all_preds.extend(preds.cpu().numpy())
                         all_targets.extend(targets.cpu().numpy())

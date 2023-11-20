@@ -51,7 +51,7 @@ args = parser.parse_args()
 # Reading the data from input directory and prepping the filter such that only those data are taken in training/testing
 print('==========================================================')
 image_list = os.listdir(str(os.getcwd()) + '/' + args.image_dir)
-image_list = list(map(lambda a : float(a.split('.')[0]), image_list))
+image_list = list(map(lambda a : a.split('.')[0], image_list))
 print('Number of images in \''+ args.image_dir + '\': ' + str(len(image_list)))
 
 label_dict = {6:0, 7:1}

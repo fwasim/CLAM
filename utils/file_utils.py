@@ -33,3 +33,8 @@ def save_hdf5(output_path, asset_dict, attr_dict= None, mode='a'):
             dset[-data_shape[0]:] = val
     file.close()
     return output_path
+
+def is_augmented_slide(slide_id):
+	if 'flip' in slide_id.split('.')[0].split('_') or 'rot' in slide_id.split('.')[0].split('_'):
+		return True
+	return False

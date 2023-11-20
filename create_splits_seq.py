@@ -32,7 +32,7 @@ args = parser.parse_args()
 # Reading the data from input directory and prepping the filter such that only those data are taken in training/testing
 print('==========================================================')
 image_list = os.listdir(str(os.getcwd()) + '/' + args.data_dir)
-image_list = list(map(lambda a : int(a.split('.')[0]), image_list))
+image_list = list(map(lambda a : a.split('.')[0], image_list))
 
 if args.data_dir[-1] == '/':
     args.data_dir = args.data_dir[:-1]

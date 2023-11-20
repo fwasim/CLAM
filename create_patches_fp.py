@@ -2,6 +2,7 @@
 from wsi_core.WholeSlideImage import WholeSlideImage
 from wsi_core.wsi_utils import StitchCoords
 from wsi_core.batch_process_utils import initialize_df
+from utils.file_utils import is_augmented_slide
 # other imports
 import os
 import numpy as np
@@ -64,7 +65,6 @@ def seg_and_patch(source, save_dir, patch_save_dir, mask_save_dir, stitch_save_d
 	slides = [slide for slide in slides if os.path.isfile(os.path.join(source, slide))]
 
 	if augment:
-		print("args.augment: " + str(augment))
 		process_augmented_slide_id(slides) # Adding additional slide ids for augmentation downstream
 
 	slides = sorted(slides)
@@ -112,12 +112,15 @@ def seg_and_patch(source, save_dir, patch_save_dir, mask_save_dir, stitch_save_d
 		if augment:
 			if is_augmented_slide(slide):	# Checking if the slide id corresponds to augmented slide
 				slide_name = slide	# Name of the augmented file
-				# Since the file names are sorted in the list, each file name is followed by the name of the augmented version of that file.
-				# Hence getting the previous index to read the actual file.  
-				idx_seg = process_stack.index[i - 1]
+				# Finding the name of the corresponding non augmented file
+				slide_list = process_stack["slide_id"].tolist()
+				idx_seg = slide_list.index(slide_name.split('.')[0].split('_')[0] + '.svs')
 				slide = process_stack.loc[idx_seg, 'slide_id']	# Name of the actual file to augment from
 				# Inialize WSI
+				print("Source: " + str(source))
+				print("Slide: " + str(slide))
 				full_path = os.path.join(source, slide)
+				print("Full path: " + str(full_path))
 				WSI_object = WholeSlideImage(full_path, True, slide_name)
 			else:
 				# Inialize WSI
@@ -248,11 +251,6 @@ def seg_and_patch(source, save_dir, patch_save_dir, mask_save_dir, stitch_save_d
 	print("average stiching time in s per slide: {}".format(stitch_times))
 		
 	return seg_times, patch_times
-
-def is_augmented_slide(slide_id):
-	if 'flip' in slide_id.split('.')[0].split('_') or 'rot' in slide_id.split('.')[0].split('_'):
-		return True
-	return False
 
 
 def process_augmented_slide_id(slide_ids):

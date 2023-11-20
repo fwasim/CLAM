@@ -70,9 +70,20 @@ class Generic_WSI_Classification_Dataset(Dataset):
 		# print('+-+-+-+-+-came to parent constructor+-+-+-+-+-+-')
 		# print('use_h5: ' + str(self.use_h5))
 
-		slide_data = pd.read_csv(csv_path, dtype={'case_id': 'Int64', 'slide_id': np.float64, 'label': np.float64})
+		slide_data = pd.read_csv(csv_path, dtype={'case_id': 'Int64', 'slide_id': str, 'label': np.float64})
 		print('Shape of data frame holding data labels after reading from csv: ')
 		print(slide_data.shape)
+		temp_df = slide_data.copy(deep=True)
+		slide_id_column = temp_df['slide_id']
+
+		def rename(name):
+			return str(name) + '_hor_flip'
+
+		new_slide_id_column = slide_id_column.apply(rename)
+		temp_df['slide_id'] = new_slide_id_column
+		
+		slide_data = slide_data.append(temp_df)
+
 		slide_data = self.filter_df(slide_data, filter_dict)
 		print('Shape of data frame holding data labels after filtering: ')
 		print(slide_data.shape)
@@ -216,7 +227,7 @@ class Generic_WSI_Classification_Dataset(Dataset):
 	def get_split_from_df(self, all_splits, split_key='train'):
 		split = all_splits[split_key]
 		split = split.dropna().reset_index(drop=True)
-
+		split = split.astype('str')
 		if len(split) > 0:
 			mask = self.slide_data['slide_id'].isin(split.tolist())
 			df_slice = self.slide_data[mask].reset_index(drop=True)
@@ -379,7 +390,7 @@ class Generic_MIL_Dataset(Generic_WSI_Classification_Dataset):
 					return slide_id, label
 
 			else:
-				full_path = os.path.join(data_dir,'h5_files','{}.h5'.format(int(slide_id)))
+				full_path = os.path.join(data_dir,'h5_files','{}.h5'.format(str(slide_id)))
 				with h5py.File(full_path,'r') as hdf5_file:
 					features = hdf5_file['features'][:]
 					coords = hdf5_file['coords'][:]
