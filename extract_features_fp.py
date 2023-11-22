@@ -120,8 +120,12 @@ if __name__ == '__main__':
 			if is_augmented_slide(bag_name):	# Checking if the slide id corresponds to augmented slide
 				slide_file_path = os.path.join(args.data_slide_dir, slide_id.split("_")[0] + args.slide_ext)
 
-
-		wsi = openslide.open_slide(slide_file_path)
+		try:
+			wsi = openslide.open_slide(slide_file_path)
+		except Exception as e:
+			print("Error encountered when trying to open file")
+			print(e)
+			continue
 		try:
 			output_file_path = compute_w_loader(h5_file_path, output_path, wsi, 
 			model = model, batch_size = args.batch_size, verbose = 1, print_every = 20, 
