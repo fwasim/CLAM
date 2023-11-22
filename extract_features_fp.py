@@ -111,7 +111,12 @@ if __name__ == '__main__':
 
 		output_path = os.path.join(args.feat_dir, 'h5_files', bag_name)
 		time_start = time.time()
-		wsi = openslide.open_slide(slide_file_path)
+		try:
+			wsi = openslide.open_slide(slide_file_path)
+		except Exception as e:
+			print("Error encountered when trying to open file")
+			print(e)
+			continue
 		try:
 			output_file_path = compute_w_loader(h5_file_path, output_path, wsi, 
 			model = model, batch_size = args.batch_size, verbose = 1, print_every = 20, 
