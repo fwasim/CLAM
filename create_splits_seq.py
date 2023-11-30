@@ -45,8 +45,8 @@ label_dict = {}
 if "Hyperplasia" in args.data_dir:
     dataset_class = "Hyperplasia"
     label_dict = {6:0, 7:1}
-elif "Cancer" in args.data_dir:
-    dataset_class = "Cancer"
+elif "Neoplasia" in args.data_dir:
+    dataset_class = "Neoplasia"
     label_dict = {4:0, 5:1}
 elif "Benign" in args.data_dir:
     dataset_class = "Benign"
@@ -71,7 +71,7 @@ if args.task == 'task_1_tumor_vs_normal':
 elif args.task == 'task_2_tumor_subtyping':
     if dataset_class == "Hyperplasia":
         args.n_classes=2
-    elif dataset_class == "Cancer":
+    elif dataset_class == "Neoplasia":
         args.n_classes=2
     elif dataset_class == "Benign":
         args.n_classes=3
